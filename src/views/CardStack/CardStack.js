@@ -69,7 +69,7 @@ type Props = {
 
 /**
  * The max duration of the card animation in milliseconds after released gesture.
- * The actual duration should be always less then that because the rest distance 
+ * The actual duration should be always less then that because the rest distance
  * is always less then the full distance of the layout.
  */
 const ANIMATION_DURATION = 500;
@@ -239,7 +239,7 @@ class CardStack extends Component {
     }
     const { navigation, position, layout, scene, scenes, mode } = this.props;
     const { index } = navigation.state;
-    const isVertical = mode === 'modal';
+    const isVertical = this._isModal();
 
     const responder = PanResponder.create({
       onPanResponderTerminate: () => {
@@ -373,11 +373,30 @@ class CardStack extends Component {
     );
   }
 
+  /**
+   * Returns true if the screen should be animated vertically (iOS modal style).
+   * Considers "mode" option from navigator-level config and route-level navigationOptions.
+   * The current screen will be animated as modal if any of the "mode" options is set to "modal".
+   */
+  _isModal(): boolean {
+    const { index, mode, scene, scenes } = this.props;
+
+    // if the current scene index is not the last in the list
+    // considering current render is in context of back-navigation
+    // may be there is a better way to detect back navigation here?
+    const isBackNavigation = index < scenes.length - 1;
+
+    // when navigating back, we should ask modal mode from the scene we are leaving in order to match animation style
+    const animationDefinerScene = isBackNavigation ? scenes[scenes.length - 1] : scene;
+    const modeFromOptions = this._getScreenDetails(animationDefinerScene).options.mode;
+    return modeFromOptions === 'modal' || mode === 'modal';
+  }
+
   _getHeaderMode(): HeaderMode {
     if (this.props.headerMode) {
       return this.props.headerMode;
     }
-    if (Platform.OS === 'android' || this.props.mode === 'modal') {
+    if (this._isModal() || Platform.OS === 'android' || this.props.mode === 'modal') {
       return 'screen';
     }
     return 'float';
@@ -414,14 +433,12 @@ class CardStack extends Component {
   }
 
   _getTransitionConfig = () => {
-    const isModal = this.props.mode === 'modal';
-
     /* $FlowFixMe */
     return TransitionConfigs.getTransitionConfig(
       this.props.transitionConfig,
       {},
       {},
-      isModal
+      this._isModal()
     );
   };
 

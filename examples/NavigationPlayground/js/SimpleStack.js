@@ -18,6 +18,10 @@ const MyNavScreen = ({ navigation, banner }) => (
       onPress={() => navigation.navigate('Photos', { name: 'Jane' })}
       title="Go to a photos screen"
     />
+    <Button
+      onPress={() => navigation.navigate('PerRouteModal')}
+      title="Open modal screen"
+    />
     <Button onPress={() => navigation.goBack(null)} title="Go back" />
   </ScrollView>
 );
@@ -37,6 +41,17 @@ const MyPhotosScreen = ({ navigation }) => (
 );
 MyPhotosScreen.navigationOptions = {
   title: 'Photos',
+};
+
+const ModalScreen = ({ navigation }) => (
+  <MyNavScreen
+    banner="This screen modal animation is configured on route level via navigationOptions"
+    navigation={navigation}
+  />
+);
+ModalScreen.navigationOptions = {
+  title: 'Per Route Modal',
+  mode: 'modal',
 };
 
 const MyProfileScreen = ({ navigation }) => (
@@ -75,6 +90,9 @@ const SimpleStack = StackNavigator({
   Photos: {
     path: 'photos/:name',
     screen: MyPhotosScreen,
+  },
+  PerRouteModal: {
+    screen: ModalScreen,
   },
 });
 
